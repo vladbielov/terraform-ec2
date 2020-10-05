@@ -13,7 +13,7 @@ resource "aws_instance" "web" {
   ami           = var.ami_id
   security_groups = [aws_security_group.web.id]
 
-  subnet_id     = tolist(data.aws_subnet_ids.my-subnets.ids)[0]
+  subnet_id     = "${aws_subnet.public3.id}"
 
   tags = {
     Name = "${var.environment}-instance"
