@@ -11,7 +11,7 @@ resource "aws_key_pair" "my-key" {
 
 # Internet VPC
 resource "aws_vpc" "application_vpc" {
-  cidr_block           = var.vpc_cidr_block
+  cidr_block           = "${var.vpc_cidr_block}"
   instance_tenancy     = "default"
   enable_dns_support   = "true"
   enable_dns_hostnames = "true"
