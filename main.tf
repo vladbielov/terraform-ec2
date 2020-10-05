@@ -1,17 +1,8 @@
-provider "aws" {
-  region = var.region
-}
-
-resource "aws_key_pair" "my-key" {
-  key_name   = var.key_name
-  public_key = var.public_key
-}
-
 ### Network
 
 # Internet VPC
 resource "aws_vpc" "application_vpc" {
-  cidr_block           = "${var.vpc_cidr_block}"
+  cidr_block           = var.vpc_cidr_block
   instance_tenancy     = "default"
   enable_dns_support   = "true"
   enable_dns_hostnames = "true"
@@ -55,6 +46,8 @@ resource "aws_internet_gateway" "internet_gw" {
   tags = {
     Name = "${var.environment}_internet_gw"
   }
+provider "aws" {
+  region = var.region
 }
 
 # route tables
@@ -69,12 +62,20 @@ resource "aws_route_table" "public_rt" {
   tags = {
     Name = "${var.environment}_public_rt"
   }
+resource "aws_key_pair" "my-key" {
+  key_name   = var.key_name
+  public_key = var.public_key
 }
 
 # NAT EIPs
 resource "aws_eip" "nat_eip" {
   vpc   = true
   count = length(aws_subnet.public_subnets)
+resource "aws_instance" "web" {
+  key_name = aws_key_pair.my-key.key_name
+  instance_type = var.instance_type
+  ami           = var.ami_id
+  security_groups = [aws_security_group.web.id]
 
   tags = {
     Name = "${var.environment}_nat_eip"
@@ -86,9 +87,11 @@ resource "aws_nat_gateway" "nat_gw" {
   allocation_id = element(aws_eip.nat_eip.*.id, count.index)
   subnet_id     = element(aws_subnet.public_subnets.*.id, count.index)
   count         = length(aws_subnet.public_subnets)
+  subnet_id     = tolist(data.aws_subnet_ids.my-subnets.ids)[0]
 
   tags = {
     Name = "${var.environment}_nat_gw"
+    Name = "${var.environment}-instance"
   }
 }
 
@@ -118,18 +121,3 @@ resource "aws_route_table_association" "public_rta" {
   subnet_id      = element(aws_subnet.public_subnets.*.id, count.index)
   route_table_id = element(aws_route_table.public_rt.*.id, count.index)
   count          = length(aws_subnet.public_subnets)
-}
-
-
-resource "aws_instance" "web" {
-  key_name = aws_key_pair.my-key.key_name
-  instance_type = var.instance_type
-  ami           = var.ami_id
-  security_groups = [aws_security_group.web.id]
-
-  subnet_id     = tolist(data.aws_subnet_ids.my-subnets.ids)[0]
-
-  tags = {
-    Name = "${var.environment}-instance"
-  }
-}
