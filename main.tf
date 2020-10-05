@@ -11,7 +11,7 @@ resource "aws_instance" "web" {
   key_name = aws_key_pair.my-key.key_name
   instance_type = var.instance_type
   ami           = var.ami_id
-  security_groups = [aws_security_group.web.id]
+  security_groups = [aws_security_group.vpc_task.id]
 
   subnet_id     = "${aws_subnet.public3.id}"
 
