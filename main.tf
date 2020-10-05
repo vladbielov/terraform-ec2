@@ -7,6 +7,13 @@ resource "aws_key_pair" "my-key" {
   public_key = var.public_key
 }
 
+resource "aws_vpc" "main" {
+  cidr_block = "${var.vpc_cidr_block}"
+  tags       = {
+      Environment = "dev"
+  }
+}
+
 resource "aws_instance" "web" {
   key_name = aws_key_pair.my-key.key_name
   instance_type = var.instance_type
