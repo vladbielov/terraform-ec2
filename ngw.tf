@@ -6,5 +6,4 @@ resource "aws_nat_gateway" "ngw" {
 
 resource "aws_eip" "nat" {
   vpc  = true
-  tags = "${var.tags}"
 }
